@@ -1,0 +1,9 @@
+CREATE TABLE Users (
+    IdUser  INTEGER       PRIMARY KEY AUTOINCREMENT,
+    Name      VARCHAR (500),
+    Email VARCHAR (500),
+    Address    VARCHAR(500),
+    Phone VARCHAR(500),
+    UserType VARCHAR(100),
+    Money float
+);
