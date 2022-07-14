@@ -24,7 +24,7 @@ namespace Sat.Recruitment.Api.Controllers
         }
 
         [HttpPost("create-user")]      
-        public async Task<ResultModel> CreateUser(string name, string email, string address, string phone, string userType, string money)
+        public async Task<ActionResult> CreateUser(string name, string email, string address, string phone, string userType, string money)
         {
             string errors = "";
 
@@ -36,7 +36,7 @@ namespace Sat.Recruitment.Api.Controllers
             //Valido los datos minimos que requiere el usuario, si no se cumple, retorno los errores y no continuo
             if (!newUser.IsValid(out errors))
             {
-                return new ResultModel(true, errors);
+                return BadRequest(errors);
             } 
 
             try
@@ -45,16 +45,16 @@ namespace Sat.Recruitment.Api.Controllers
                 User user = await _storage.GetUserByEmail(newUser);
                 if (user != null)
                 {
-                    return new ResultModel(false, "The user is duplicated");
+                    return BadRequest("The user is duplicated");
                 }
                 await _storage.SaveUser(newUser);
             }
             catch (Exception ex)
             {
-                return new ResultModel(false, ex.Message);
+                return StatusCode(500, ex.Message);
             }
 
-            return new ResultModel(true, "User Created");
+            return Ok("User Created");
 
         }
     }
