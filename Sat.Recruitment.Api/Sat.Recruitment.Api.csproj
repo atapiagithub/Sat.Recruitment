@@ -11,10 +11,14 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Sat.Recruitment.BE\Sat.Recruitment.BE.csproj" />
+    <ProjectReference Include="..\Sat.Recruitment.DAL\Sat.Recruitment.DAL.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <None Update="Files\Users.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="storage.db">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

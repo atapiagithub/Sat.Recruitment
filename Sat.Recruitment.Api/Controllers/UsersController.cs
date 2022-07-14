@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Sat.Recruitment.Api.Models;
 using Sat.Recruitment.BE;
+using Sat.Recruitment.DAL;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,12 +12,15 @@ namespace Sat.Recruitment.Api.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public partial class UsersController : ControllerBase
+    public class UsersController : ControllerBase
     {
-
-        private readonly List<User> _users = new List<User>();
-        public UsersController()
+        IStorage _storage;
+        AppSettings _appSettings;       
+       
+        public UsersController(AppSettings appSettings, IStorage storage)
         {
+            _appSettings = appSettings;
+            _storage = storage;
         }
 
         [HttpPost("create-user")]      
@@ -33,70 +37,25 @@ namespace Sat.Recruitment.Api.Controllers
             if (!newUser.IsValid(out errors))
             {
                 return new ResultModel(true, errors);
-            }            
+            } 
 
-            var reader = ReadUsersFromFile();
-
-            //Normalize email
-            var aux = newUser.Email.Split(new char[] { '@' }, StringSplitOptions.RemoveEmptyEntries);
-
-            var atIndex = aux[0].IndexOf("+", StringComparison.Ordinal);
-
-            aux[0] = atIndex < 0 ? aux[0].Replace(".", "") : aux[0].Replace(".", "").Remove(atIndex);
-
-            newUser.Email = string.Join("@", new string[] { aux[0], aux[1] });
-
-            while (reader.Peek() >= 0)
-            {
-                var line = reader.ReadLineAsync().Result;
-                var user = new User(line.Split(',')[0].ToString(),
-                    line.Split(',')[1].ToString(),
-                    line.Split(',')[3].ToString(),
-                    line.Split(',')[2].ToString(),
-                    line.Split(',')[4].ToString(),
-                    line.Split(',')[5].ToString());
-               
-                _users.Add(user);
-            }
-            reader.Close();
             try
             {
-                var isDuplicated = false;
-                foreach (var user in _users)
+                //Validacion de usuario existente (por email, que es dato univoco)
+                User user = await _storage.GetUserByEmail(newUser);
+                if (user != null)
                 {
-                    if (user.Email == newUser.Email
-                        ||
-                        user.Phone == newUser.Phone)
-                    {
-                        isDuplicated = true;
-                    }
-                    else if (user.Name == newUser.Name)
-                    {
-                        if (user.Address == newUser.Address)
-                        {
-                            isDuplicated = true;
-                            throw new Exception("User is duplicated");
-                        }
-
-                    }
-                }
-
-                if (!isDuplicated)
-                {
-                    Debug.WriteLine("User Created");
-                    return new ResultModel(true, "User Created");
-                }
-                else
-                {
-                    Debug.WriteLine("The user is duplicated");
                     return new ResultModel(false, "The user is duplicated");
                 }
+                await _storage.SaveUser(newUser);
             }
-            catch
+            catch (Exception ex)
             {
-                Debug.WriteLine("The user is duplicated");
-                return new ResultModel(false, "The user is duplicated");
+                return new ResultModel(false, ex.Message);
             }
+
+            return new ResultModel(true, "User Created");
+
         }
     }
 }

@@ -7,5 +7,6 @@ namespace Sat.Recruitment.Api.Models
 {
     public class AppSettings
     {
+        public string ConnectionString { get; set; }
     }
 }
