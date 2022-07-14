@@ -32,26 +32,32 @@ namespace Sat.Recruitment.BE
                 case "Normal":
                     if (this.Money > 100)
                     {
-                        this.Money += this.Money * Convert.ToDecimal(0.12);
+                        this.Money +=  this.Money * 0.12m;
                     }
                     if (this.Money < 100 && this.Money > 10)
                     {
-                        this.Money += this.Money * Convert.ToDecimal(0.8);
+                        this.Money += this.Money * 0.8m;
                     }
                     break;
                 case "SuperUser":
                     if (this.Money > 100)
                     {
-                        this.Money += this.Money * Convert.ToDecimal(0.20);
+                        this.Money += this.Money * 0.20m;
                     }
                     break;
                 case "Premium":
                     if (this.Money > 100)
                     {
-                        this.Money += this.Money * 2;
+                        this.Money += this.Money * 2m;
                     }
                     break;
             }
+
+            //Normalizar EMAIL            
+            string[] aux = this.Email.Split(new char[] { '@' }, StringSplitOptions.RemoveEmptyEntries);
+            int atIndex = aux[0].IndexOf("+", StringComparison.Ordinal);
+            aux[0] = atIndex < 0 ? aux[0].Replace(".", "") : aux[0].Replace(".", "").Remove(atIndex);
+            this.Email = string.Join("@", new string[] { aux[0], aux[1] });
 
         }
 
@@ -74,6 +80,6 @@ namespace Sat.Recruitment.BE
 
             return string.IsNullOrEmpty(validation);
 
-        }
+        }       
     }
 }
