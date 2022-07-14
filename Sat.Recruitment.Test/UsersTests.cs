@@ -23,7 +23,7 @@ namespace Sat.Recruitment.Test
             appsettings.ConnectionString = "Data Source=" + Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "storage.db");
             SQLite storage = new SQLite(appsettings.ConnectionString);
             UsersController userController = new UsersController(appsettings, storage);
-            var apiResult = await userController.CreateUser("Mike", "mike@gmail.com", "Av. Juan G", "+349 1122354215", "Normal", "124");
+            var apiResult = await userController.CreateUser("Mike", "mike@gmail.com", "Av. Juan G", "+349 1122354216", "Normal", "124");
             var objectResult = apiResult as ObjectResult;
 
             //valido resultado no nulo

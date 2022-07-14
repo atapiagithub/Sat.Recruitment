@@ -54,20 +54,22 @@ namespace Sat.Recruitment.DAL
 
         }
 
-        public async Task<User> GetUserByEmail(User user)
+        public async Task<bool> ValidateUserExists(User user)
         {
-            User oResultado = null;
             DataTable oData = new DataTable();
             try
             {
                 using (SqliteConnection oConexionSQL = new SqliteConnection(strConnection))
                 {
-                    string szUpdate = " SELECT Name, Email, Address, Phone, UserType, Money FROM Users ";
-                    szUpdate += " WHERE Email = @Email ";
+                    string szQuery = " SELECT 1 FROM Users WHERE Email = @Email OR Phone = @Phone;";
+                    szQuery += "SELECT 1 FROM Users WHERE Name = @Name AND Address = @Address;";
 
-                    using (SqliteCommand oComandoSQL = new SqliteCommand(szUpdate, oConexionSQL))
+                    using (SqliteCommand oComandoSQL = new SqliteCommand(szQuery, oConexionSQL))
                     {
                         oComandoSQL.Parameters.AddWithValue("@Email", user.Email);
+                        oComandoSQL.Parameters.AddWithValue("@Phone", user.Phone);
+                        oComandoSQL.Parameters.AddWithValue("@Address", user.Address);
+                        oComandoSQL.Parameters.AddWithValue("@Name", user.Name);
 
                         await oConexionSQL.OpenAsync();
                         using (SqliteDataReader oReaderSQL = oComandoSQL.ExecuteReader())
@@ -78,19 +80,16 @@ namespace Sat.Recruitment.DAL
                     }
                 }
 
-                //Si no hay coincidencias, devuelvo el objeto nulo
+                //Si no se cumple ninguna de las validaciones, no se devuelven filas.
+                //Si se cumple alguna, se devolvera al menos una fila con un 1
                 if (oData.Rows.Count > 0)
                 {
-                    //de lo contrario, completo los datos
-                    oResultado = new User(oData.Rows[0]["Name"].ToString(),
-                    oData.Rows[0]["Email"].ToString(),
-                    oData.Rows[0]["Address"].ToString(),
-                    oData.Rows[0]["Phone"].ToString(),
-                    oData.Rows[0]["UserType"].ToString(),
-                    oData.Rows[0]["Money"].ToString());
-                }                
-
-                return oResultado;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }               
             }
             catch (SqliteException sqlex)
             {

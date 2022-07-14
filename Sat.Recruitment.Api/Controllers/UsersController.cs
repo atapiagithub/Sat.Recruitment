@@ -41,9 +41,8 @@ namespace Sat.Recruitment.Api.Controllers
 
             try
             {
-                //Validacion de usuario existente (por email, que es dato univoco)
-                User user = await _storage.GetUserByEmail(newUser);
-                if (user != null)
+                //Validacion de usuario existente (por email, que es dato univoco)                
+                if (await _storage.ValidateUserExists(newUser))
                 {
                     return BadRequest("The user is duplicated");
                 }

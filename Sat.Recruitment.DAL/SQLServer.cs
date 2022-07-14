@@ -53,20 +53,22 @@ namespace Sat.Recruitment.DAL
 
         }
 
-        public async Task<User> GetUserByEmail(User user)
+        public async Task<bool> ValidateUserExists(User user)
         {
-            User oResultado = null;
             DataTable oData = new DataTable();
             try
             {
                 using (SqlConnection oConexionSQL = new SqlConnection(strConnection))
                 {
-                    string szUpdate = " SELECT Name, Email, Address, Phone, UserType, Money FROM Users ";
-                    szUpdate += " WHERE Email = @Email ";
+                    string szQuery = " SELECT 1 FROM Users WHERE Email = @Email OR Phone = @Phone";
+                    szQuery += "UNION SELECT 1 FROM Users WHERE Name = @Address AND Phone = @Address ";
 
-                    using (SqlCommand oComandoSQL = new SqlCommand(szUpdate, oConexionSQL))
+                    using (SqlCommand oComandoSQL = new SqlCommand(szQuery, oConexionSQL))
                     {
                         oComandoSQL.Parameters.AddWithValue("@Email", user.Email);
+                        oComandoSQL.Parameters.AddWithValue("@Phone", user.Email);
+                        oComandoSQL.Parameters.AddWithValue("@Address", user.Address);
+                        oComandoSQL.Parameters.AddWithValue("@Name", user.Name);
 
                         await oConexionSQL.OpenAsync();
                         using (SqlDataReader oReaderSQL = oComandoSQL.ExecuteReader())
@@ -80,16 +82,12 @@ namespace Sat.Recruitment.DAL
                 //Si no hay coincidencias, devuelvo el objeto nulo
                 if (oData.Rows.Count > 0)
                 {
-                    //de lo contrario, completo los datos
-                    oResultado = new User(oData.Rows[0]["Name"].ToString(),
-                    oData.Rows[0]["Email"].ToString(),
-                    oData.Rows[0]["Address"].ToString(),
-                    oData.Rows[0]["Phone"].ToString(),
-                    oData.Rows[0]["UserType"].ToString(),
-                    oData.Rows[0]["Money"].ToString());
+                    return true;
                 }
-
-                return oResultado;
+                else
+                {
+                    return false;
+                }
             }
             catch (SqlException sqlex)
             {
